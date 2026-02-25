@@ -1,9 +1,6 @@
 name: build-and-push-comfyui-cpu
 
 on:
-  push:
-    branches: ["main"]
-    tags: ["v*.*.*"]
   workflow_dispatch:
 
 permissions:
