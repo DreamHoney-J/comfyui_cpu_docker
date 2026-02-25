@@ -135,12 +135,46 @@ data/models/
 └── ...
 ```
 
+## 内置自定义节点：Grok2API Image Generator
+
+镜像中预装了 `simple_grok2api.py` 自定义节点，位于容器内 `ComfyUI/custom_nodes/` 目录。
+
+该节点通过 OpenAI 兼容的图像生成 API（如 Grok2API）在 ComfyUI 工作流中直接调用文生图服务，无需本地模型即可生成图片。
+
+### 节点参数
+
+| 参数 | 说明 |
+|------|------|
+| `api_base` | API 服务地址（如 `https://api.example.com`） |
+| `api_key` | API 密钥 |
+| `prompt` | 图像描述提示词（支持外部输入连接） |
+| `model` | 模型名称，默认 `grok-imagine-1.0` |
+| `n` | 生成数量（1-10） |
+| `size` | 图片尺寸，支持 `1024x1024`、`1792x1024`、`1024x1792`、`1280x720`、`720x1280` |
+| `response_format` | 响应格式，支持 `b64_json`、`base64`、`url` |
+
+节点输出标准 ComfyUI `IMAGE` 类型，可直接连接预览或保存节点。
+
+### SillyTavern 生图工作流
+
+项目提供了 `comfyui_grok2api.json`，可直接导入 SillyTavern 作为 ComfyUI 生图工作流使用。
+
+使用方法：
+
+1. 在 SillyTavern 中进入 **图像生成** 设置，选择 ComfyUI 作为后端
+2. 导入 `comfyui_grok2api.json` 工作流文件
+3. 将工作流中的 `api_base` 和 `api_key` 替换为你自己的 API 地址和密钥
+
+该工作流调用 `SimpleGrok2APIGen` 节点生成图片，并通过 `SaveImage` 节点保存结果。SillyTavern 会自动将提示词填入 `%prompt%` 占位符。
+
 ## 项目结构
 
 ```
 comfyui_cpu_docker/
 ├── Dockerfile                        # 镜像构建文件（GitHub Actions 使用）
 ├── docker-compose.yml                # 本地部署配置
+├── simple_grok2api.py                # Grok2API 自定义节点（构建时复制到容器内）
+├── comfyui_grok2api.json             # SillyTavern 生图工作流配置
 ├── .github/
 │   └── workflows/
 │       └── docker-image.yml         # GitHub Actions 自动构建

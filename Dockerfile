@@ -27,4 +27,8 @@ EXPOSE 8188
 
 VOLUME ["/app/ComfyUI/models", "/app/ComfyUI/output", "/app/ComfyUI/input"]
 
+RUN python -m pip install requests pillow
+
+COPY simple_grok2api.py /app/ComfyUI/custom_nodes/simple_grok2api.py
+
 CMD ["python", "main.py", "--cpu", "--listen", "0.0.0.0", "--port", "8188"]
