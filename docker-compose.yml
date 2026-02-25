@@ -1,0 +1,12 @@
+services:
+  comfyui:
+    build: .
+    image: comfyui:cpu
+    container_name: comfyui-cpu
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./data/models:/app/ComfyUI/models
+      - ./data/output:/app/ComfyUI/output
+      - ./data/input:/app/ComfyUI/input
+    restart: unless-stopped
