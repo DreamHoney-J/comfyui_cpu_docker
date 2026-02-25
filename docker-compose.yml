@@ -5,7 +5,5 @@ services:
     ports:
       - "8188:8188"
     volumes:
-      - ./data/models:/app/ComfyUI/models
-      - ./data/output:/app/ComfyUI/output
-      - ./data/input:/app/ComfyUI/input
+      - ./ComfyUI:/app/ComfyUI
     restart: unless-stopped

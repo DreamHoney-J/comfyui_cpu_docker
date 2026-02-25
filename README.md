@@ -2,9 +2,12 @@
 
 使用 Docker Compose 以 CPU 模式部署 ComfyUI。提供两种部署方式：Fork 自行构建镜像，或直接使用本项目已构建的镜像。
 
+ComfyUI 源码以 git submodule 形式管理，运行时通过 volume 挂载到容器中，镜像本身只包含 Python 依赖环境，体积小、更新快。
+
 ## 环境要求
 
 - Docker 及 Docker Compose（推荐 Docker Desktop 或 Linux 原生安装）
+- Git（用于克隆仓库和初始化 submodule）
 - 无需 NVIDIA 显卡，纯 CPU 运行
 
 ---
@@ -37,11 +40,17 @@ ghcr.io/<你的GitHub用户名>/comfyui_cpu_docker:main
 
 可在仓库的 **Packages** 页面查看。
 
-### 4. 下载 docker-compose.yml 到本地
+### 4. 克隆仓库到本地（含 ComfyUI submodule）
 
 ```bash
-mkdir comfyui_cpu_docker && cd comfyui_cpu_docker
-curl -O https://raw.githubusercontent.com/<你的GitHub用户名>/comfyui_cpu_docker/main/docker-compose.yml
+git clone --recurse-submodules https://github.com/<你的GitHub用户名>/comfyui_cpu_docker.git
+cd comfyui_cpu_docker
+```
+
+如果已经克隆过但没有初始化 submodule：
+
+```bash
+git submodule update --init --recursive
 ```
 
 ### 5. 修改 docker-compose.yml 中的镜像地址
@@ -58,7 +67,6 @@ services:
 ### 6. 启动服务
 
 ```bash
-mkdir -p data/models data/output data/input
 docker compose up -d
 ```
 
@@ -70,20 +78,20 @@ docker compose up -d
 
 适合快速体验、不需要修改构建流程的用户。
 
-### 1. 下载 docker-compose.yml
+### 1. 克隆仓库（含 ComfyUI submodule）
 
 ```bash
-mkdir comfyui_cpu_docker && cd comfyui_cpu_docker
-curl -O https://raw.githubusercontent.com/DreamHoney-J/comfyui_cpu_docker/main/docker-compose.yml
+git clone --recurse-submodules https://github.com/DreamHoney-J/comfyui_cpu_docker.git
+cd comfyui_cpu_docker
 ```
 
-### 2. 创建数据目录
+如果已经克隆过但没有初始化 submodule：
 
 ```bash
-mkdir -p data/models data/output data/input
+git submodule update --init --recursive
 ```
 
-### 3. 启动服务
+### 2. 启动服务
 
 ```bash
 docker compose up -d
@@ -91,7 +99,7 @@ docker compose up -d
 
 Docker 会自动从 GHCR 拉取本项目预构建的镜像 `ghcr.io/dreamhoney-j/comfyui_cpu_docker:main` 并启动容器。
 
-### 4. 访问 ComfyUI
+### 3. 访问 ComfyUI
 
 浏览器打开：
 
@@ -107,6 +115,20 @@ http://<你的IP>:8188
 
 ---
 
+## 更新 ComfyUI
+
+由于 ComfyUI 是 submodule，更新非常简单：
+
+```bash
+# 更新 ComfyUI 到最新版本
+cd ComfyUI
+git pull origin master
+cd ..
+
+# 重启容器使更新生效
+docker compose restart
+```
+
 ## 常用命令
 
 ```bash
@@ -119,25 +141,31 @@ docker compose logs -f
 # 停止
 docker compose down
 
-# 更新镜像后重启
+# 更新镜像后重启（仅更新 Python 依赖环境）
 docker compose pull && docker compose up -d
 ```
 
 ## 模型存放
 
-将模型文件放入 `data/models/` 目录下对应子目录，与 ComfyUI 标准目录结构一致：
+将模型文件放入 `ComfyUI/models/` 目录下对应子目录，与 ComfyUI 标准目录结构一致：
 
 ```
-data/models/
+ComfyUI/models/
 ├── checkpoints/
 ├── loras/
 ├── vae/
 └── ...
 ```
 
-## 内置自定义节点：Grok2API Image Generator
+## 自定义节点
 
-镜像中预装了 `simple_grok2api.py` 自定义节点，位于容器内 `ComfyUI/custom_nodes/` 目录。
+将自定义节点放入 `ComfyUI/custom_nodes/` 目录即可，容器会自动加载。
+
+项目内置了 `simple_grok2api.py` 自定义节点，使用前需将其复制到 `ComfyUI/custom_nodes/` 目录：
+
+```bash
+cp simple_grok2api.py ComfyUI/custom_nodes/
+```
 
 该节点通过 OpenAI 兼容的图像生成 API（如 Grok2API）在 ComfyUI 工作流中直接调用文生图服务，无需本地模型即可生成图片。
 
@@ -171,15 +199,14 @@ data/models/
 
 ```
 comfyui_cpu_docker/
-├── Dockerfile                        # 镜像构建文件（GitHub Actions 使用）
+├── Dockerfile                        # 镜像构建文件（仅包含 Python 依赖环境）
 ├── docker-compose.yml                # 本地部署配置
-├── simple_grok2api.py                # Grok2API 自定义节点（构建时复制到容器内）
+├── .dockerignore                     # Docker 构建排除规则
+├── simple_grok2api.py                # Grok2API 自定义节点
 ├── comfyui_grok2api.json             # SillyTavern 生图工作流配置
+├── ComfyUI/                          # ComfyUI 源码（git submodule，运行时挂载到容器）
 ├── .github/
 │   └── workflows/
 │       └── docker-image.yml         # GitHub Actions 自动构建
-└── data/                            # 持久化数据（运行后生成）
-    ├── models/                      # 模型文件
-    ├── output/                      # 生成图片输出
-    └── input/                       # 输入图片
+└── .gitmodules                       # submodule 配置
 ```

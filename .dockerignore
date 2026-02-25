@@ -1,0 +1,6 @@
+ComfyUI/
+.git/
+.github/
+data/
+*.md
+LICENSE
