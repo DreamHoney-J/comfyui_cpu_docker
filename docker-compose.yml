@@ -1,7 +1,6 @@
 services:
   comfyui:
-    build: .
-    image: comfyui:cpu
+    image: ghcr.io/dreamhoney-j/comfyui_cpu_docker:main
     container_name: comfyui-cpu
     ports:
       - "8188:8188"
