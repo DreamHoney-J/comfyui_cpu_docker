@@ -38,8 +38,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=ref,event=tag
-            type=sha
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -50,3 +48,11 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Clean up old untagged images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: comfyui_cpu_docker
+          package-type: container
+          min-versions-to-keep: 1
+          delete-only-untagged-versions: true
